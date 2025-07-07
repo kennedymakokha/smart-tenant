@@ -41,7 +41,7 @@ const HouseScreen = () => {
     };
 
     return (
-        <View style={{ padding: 20 }}>
+        <View style={{ flex: 1, padding: 20 }}>
             <Text>Add New House</Text>
             <TextInput
                 placeholder="House Number"

@@ -57,7 +57,7 @@ const TenantScreen = () => {
     };
 
     return (
-        <View style={{ padding: 20 }}>
+        <View style={{ flex: 1, padding: 20 }}>
             <Text>Assign Tenant to House</Text>
             <TextInput
                 placeholder="Tenant Name"

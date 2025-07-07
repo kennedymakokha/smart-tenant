@@ -84,7 +84,7 @@ const RentScreen = () => {
     };
 
     return (
-        <View style={{ padding: 20 }}>
+        <View style={{ flex: 1, padding: 20 }}>
             <Text>Pay Rent</Text>
 
             <Text>Select Tenant:</Text>
@@ -101,7 +101,7 @@ const RentScreen = () => {
                     />
                 ))}
             </Picker>
-            
+
 
             <Button title="Pay Rent for This Month" onPress={addPayment} />
 
