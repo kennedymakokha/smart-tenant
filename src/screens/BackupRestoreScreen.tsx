@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Button, Alert } from 'react-native';
+import { View, Alert } from 'react-native';
 import RNFS from 'react-native-fs';
 import db from '../database/db';
+import { Button } from '../components/ui/elements';
 
 const filePath = `${RNFS.DocumentDirectoryPath}/house-management-backup.json`;
 
@@ -68,8 +69,7 @@ const BackupRestoreScreen = () => {
   };
 
   return (
-    <View style={{ padding: 20 }}>
-        <View className=""> </View>
+     <View className='flex-1 bg-gray-100 p-4'>
       <Button title="⬆️ Backup to File" onPress={backupData} />
       <View style={{ height: 20 }} />
       <Button title="⬇️ Restore from Backup" onPress={restoreData} />

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, FlatList } from 'react-native';
+import { View, Text, TextInput, FlatList } from 'react-native';
 import db, { initDB } from '../database/db';
+import { Button, Input } from '../components/ui/elements';
 
 const HouseScreen = () => {
     const [houseNumber, setHouseNumber] = useState('');
@@ -41,15 +42,16 @@ const HouseScreen = () => {
     };
 
     return (
-        <View style={{ flex: 1, padding: 20 }}>
+        <View className='flex-1 bg-gray-100 p-4'>
+
             <Text>Add New House</Text>
-            <TextInput
+            <Input
                 placeholder="House Number"
                 value={houseNumber}
                 onChangeText={setHouseNumber}
                 style={{ borderWidth: 1, marginVertical: 10, padding: 5 }}
             />
-            <TextInput
+            <Input
                 placeholder="Monthly Rent (e.g. 8000)"
                 keyboardType="numeric"
                 value={rentAmount}
@@ -60,8 +62,10 @@ const HouseScreen = () => {
             <FlatList
                 data={houses}
                 keyExtractor={(item: any) => item.id.toString()}
-                renderItem={({ item }) => (
+                renderItem={({ item }) => (<View className='h-10 my-1 flex-row flex p-2 justify-between items-center border-slate-300 border rounded-md'>
                     <Text>{item.house_number}</Text>
+                    <Text> Ksh {item.rent_amount.toFixed(2)}</Text>
+                </View>
                 )}
             />
         </View>

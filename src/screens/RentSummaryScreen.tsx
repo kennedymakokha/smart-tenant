@@ -44,9 +44,9 @@ const RentSummaryScreen = () => {
     };
 
     return (
-        <View style={{ padding: 20 }}>
+         <View className='flex-1 bg-gray-100 p-4'>
             <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 10 }}>
-                📅 Rent Collected Per Month
+                 Rent Collected Per Month
             </Text>
             <FlatList
                 data={summaryByMonth}
@@ -56,16 +56,7 @@ const RentSummaryScreen = () => {
                 )}
             />
 
-            <Text style={{ fontWeight: 'bold', fontSize: 16, marginVertical: 20 }}>
-                👤 Rent Paid Per Tenant
-            </Text>
-            <FlatList
-                data={summaryByTenant}
-                keyExtractor={(item, index) => `tenant-${index}`}
-                renderItem={({ item }: any) => (
-                    <Text>{item.name}: KES {item.total}</Text>
-                )}
-            />
+           
         </View>
     );
 };

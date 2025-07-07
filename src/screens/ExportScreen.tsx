@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Button, Alert } from 'react-native';
+import { View, Alert } from 'react-native';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
 import RNHTMLtoPDF from 'react-native-html-to-pdf';
 import db from '../database/db';
+import { Button } from '../components/ui/elements';
 
 const ExportScreen = () => {
   const exportCSV = async () => {
@@ -93,10 +94,10 @@ const ExportScreen = () => {
   };
 
   return (
-    <View style={{ padding: 20 }}>
-      <Button title="📤 Export CSV" onPress={exportCSV} />
+    <View className='flex-1 bg-gray-100 p-4'>
+      <Button title="Export CSV" onPress={exportCSV} />
       <View style={{ height: 20 }} />
-      <Button title="📝 Export PDF" onPress={exportPDF} />
+      <Button title="Export PDF" onPress={exportPDF} />
     </View>
   );
 };
