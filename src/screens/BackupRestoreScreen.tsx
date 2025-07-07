@@ -25,12 +25,12 @@ const BackupRestoreScreen = () => {
     const backup = { houses, tenants, payments };
     await RNFS.writeFile(filePath, JSON.stringify(backup), 'utf8');
 
-    Alert.alert('✅ Backup Complete', `File saved to:\n${filePath}`);
+    Alert.alert('Backup Complete', `File saved to:\n${filePath}`);
   };
 
   const restoreData = async () => {
     if (!(await RNFS.exists(filePath))) {
-      Alert.alert('❌ Backup File Not Found', 'No backup file exists.');
+      Alert.alert(' Backup File Not Found', 'No backup file exists.');
       return;
     }
 
@@ -65,14 +65,14 @@ const BackupRestoreScreen = () => {
       });
     });
 
-    Alert.alert('✅ Restore Complete', 'Database has been restored from backup.');
+    Alert.alert(' Restore Complete', 'Database has been restored from backup.');
   };
 
   return (
      <View className='flex-1 bg-gray-100 p-4'>
-      <Button title="⬆️ Backup to File" onPress={backupData} />
+      <Button title=" Backup to File" onPress={backupData} />
       <View style={{ height: 20 }} />
-      <Button title="⬇️ Restore from Backup" onPress={restoreData} />
+      <Button title="Restore from Backup" onPress={restoreData} />
     </View>
   );
 };

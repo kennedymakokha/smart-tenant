@@ -40,7 +40,7 @@ const MissedRentScreen = () => {
                 <Text> All tenants have paid.</Text>
             ) : (
                 <FlatList
-                    data={unpaidTenants}
+                    data={unpaidTenants.filter((x: any) => x.house_number !== null)}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }: any) => (
                         <View className='w-full flex-row'>
