@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, Alert, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import db from '../database/db';
 import { Button, Section } from '../components/ui/elements';
 import { useToast } from '../../contexts/toastContext';
+import { FormatDate } from '../../utils/dateFormarter';
+import Icon from 'react-native-vector-icons/FontAwesome'
+import { useFocusEffect } from '@react-navigation/native';
 
-
-export default function RentScreen() {
+export default function RentScreen({ navigation }: any) {
     const [tenants, setTenants] = useState([]);
     const [tenantId, setTenantId] = useState(null);
     const [payments, setPayments] = useState([]);
@@ -16,14 +18,28 @@ export default function RentScreen() {
         fetchTenants();
         fetchPayments();
     }, []);
-
+    useFocusEffect(
+        useCallback(() => {
+            fetchTenants();
+            fetchPayments();
+        }, [])
+    );
+   
     const fetchTenants = async () => {
+        const today = new Date();
+        const month = today.toLocaleString('default', { month: 'long' });
+        const year = today.getFullYear();
+
         const database = await db;
         database.transaction(tx => {
             tx.executeSql(
                 `SELECT tenants.id, tenants.name, houses.house_number, houses.rent_amount
-         FROM tenants LEFT JOIN houses ON tenants.house_id = houses.id`,
-                [],
+                 FROM tenants
+                 LEFT JOIN houses ON tenants.house_id = houses.id
+                 WHERE tenants.id NOT IN (
+                     SELECT tenant_id FROM rent_payments WHERE month = ? AND year = ?
+                 ) AND houses.house_number IS NOT NULL`,
+                [month, year],
                 (_, results) => {
                     const rows: any = results.rows.raw();
                     setTenants(rows);
@@ -84,6 +100,7 @@ export default function RentScreen() {
                             [tenantId, amount, month, year, date],
                             () => {
                                 fetchPayments();
+                                fetchTenants()
 
                                 // Fetch tenant name again after insert, optional
                                 tx.executeSql(
@@ -101,48 +118,52 @@ export default function RentScreen() {
             );
         });
 
-        // dbConn.transaction(tx => {
-        //     tx.executeSql(
-        //         `SELECT * FROM rent_payments WHERE tenant_id = ? AND month = ? AND year = ?`,
-        //         [tenantId, month, year],
-        //         (_, { rows }) => {
-        //             if (rows.length > 0) {
-        //                 showToast(`Already paid for ${month}`, { type: 'info', position: "bottom" });
-
-        //             } else {
-        //                 tx.executeSql(
-        //                     'INSERT INTO rent_payments (tenant_id, amount, month, year, date_paid) VALUES (?, ?, ?, ?, ?)',
-        //                     [tenantId, amount, month, year, date],
-        //                     () => {
-        //                         fetchPayments();
-        //                         Alert.alert('Payment recorded');
-        //                     }
-        //                 );
-        //             }
-        //         }
-        //     );
-        // });
     };
+    const TableHeader = () => (
+        <View className="flex-row bg-gray-200 border-b border-gray-400">
 
+
+            <View className="w-[40%] p-2">
+                <Text className="font-bold text-gray-800">Tenant</Text>
+            </View>
+            <View className="w-[30%] p-2">
+                <Text className="font-bold text-gray-800">amount</Text>
+            </View>
+            <View className="w-[30%] p-2">
+                <Text className="font-bold text-gray-800">Acknowledge</Text>
+            </View>
+        </View>
+    );
+
+    const TableRow = ({ item }: any) => (
+        <View className="flex-row border-b  border-gray-300 bg-white">
+            <View className="w-[40%] p-2  justify-center flex">
+                <TouchableOpacity onPress={() => navigation.navigate('rentDetail', { rent: item })} className="flex">
+                    <Text className="text-gray-700">{item.name}</Text>
+                </TouchableOpacity>
+            </View>
+            <View className="w-[30%]  justify-center flex  p-2">
+                <Text className="text-gray-700"> {item.rent_amount.toFixed(2)}</Text>
+            </View>
+            <View className="w-[30%] p-2 flex-row  gap-x-2">
+                <TouchableOpacity onPress={() => navigation.navigate('rentDetail', { rent: item })} className=" border rounded-sm  px-2 border-slate-300  items-center justify-center flex">
+                    <Icon name="eye" size={20} color="gray" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => addPayment(item.id)} className=" border rounded-sm  px-2 border-slate-300  items-center justify-center flex">
+                    <Icon name="check" size={20} color="gray" />
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
     return (
         <View className="flex-1 bg-gray-100 p-4">
-            <Section title={`Payment For ${new Date().toLocaleString('default', { month: 'long' })}`}>
-                <FlatList
-                    data={tenants.filter((x: any) => x.house_number !== null)}
-                    keyExtractor={(item: any) => item.id.toString()}
-                    renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => addPayment(item.id)} className="bg-white p-3 flex flex-row items-center justify-between rounded mb-2">
-                            <Text className="text-sm">
-                                {item.name}
-                            </Text>
-                            <Text className="text-sm">
-                                KES {item.rent_amount.toFixed(2)}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                />
-            </Section>
+            <TableHeader />
+            <FlatList
+                data={tenants.filter((x: any) => x.house_number !== null)}
+                keyExtractor={(item: any) => item.id.toString()}
+                renderItem={({ item }) => <TableRow item={item} />}
 
+            />
         </View>
     );
 }

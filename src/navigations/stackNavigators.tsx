@@ -11,6 +11,8 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootDrawer } from "./DrawerNavigator";
 import LandingScreen from "../screens/LandingScreen";
 import { HouseTab } from "./tabNavigator";
+import RentScreen from "../screens/RentScreen";
+import RentDetailscreen from "../screens/RentDetailscreen";
 
 export function AuthStack() {
 
@@ -18,7 +20,7 @@ export function AuthStack() {
 
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-{/*         
+            {/*         
             <Stack.Screen name="homescreen" component={SplashScreen} />
             <Stack.Screen name="Login" component={LoginScreen} /> */}
 
@@ -32,15 +34,41 @@ export function HouseStack() {
     const Stack = createNativeStackNavigator();
 
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="houses" component={HouseScreen} />
+        <Stack.Navigator screenOptions={{ headerShown: true }}>
+            <Stack.Screen name="houses"
+                options={{
+                    header: () => <CustomHeader title={`Houses`} />
+                }}
+                component={HouseScreen} />
             <Stack.Screen name="houseDetail"
                 options={({ route }: any) => {
                     return {
-                        header: () => <CustomHeader back title={`${route.params.house.name}`} />,
+                        header: () => <CustomHeader back title={`${route.params.house.house_number}`} />,
                     }
                 }}
                 component={HouseDetailScreen} />
+
+        </Stack.Navigator>
+    );
+}
+export function RentStack() {
+
+    const Stack = createNativeStackNavigator();
+
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: true }}>
+            <Stack.Screen name="rentStack"
+                options={{
+                    header: () => <CustomHeader title={`Rent PaYments for ${new Date().toLocaleString('default', { month: 'long' })} `} />
+                }}
+                component={RentScreen} />
+            <Stack.Screen name="rentDetail"
+                options={({ route }: any) => {
+                    return {
+                        header: () => <CustomHeader back title={`${route.params.rent.name}  Rent History`} />,
+                    }
+                }}
+                component={RentDetailscreen} />
 
         </Stack.Navigator>
     );
@@ -51,7 +79,7 @@ export function TenantsStack() {
 
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-        
+
             <Stack.Screen name="tenants" component={TenantScreen} />
             <Stack.Screen name="tenantDetail" component={TenantDetailScreen} />
             <Stack.Screen name="tenantPayments" component={TenantPayment} />

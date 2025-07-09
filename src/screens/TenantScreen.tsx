@@ -60,27 +60,45 @@ const TenantScreen = () => {
         });
     };
     const assignTenant = async () => {
-        if (!name || !houseId) return;
+        if (!name || !houseId) {
+            Alert.alert("house not selected")
+            return
+        };
+      
         const database = await db;
+
+        // Check if the house is already assigned
         database.transaction(tx => {
             tx.executeSql(
-                'INSERT INTO tenants (name, phone, house_id) VALUES (?, ?, ?)',
-                [name, phone, houseId],
-                () => {
-                    setName('');
-                    setPhone('');
-                    fetchTenants();
-                    setAddNewTenant(false)
-                    showToast(`Tenant added & assigned a room `, { type: 'success' });
+                'SELECT * FROM tenants WHERE house_id = ?',
+                [houseId],
+                (_, { rows }) => {
+                    if (rows.length > 0) {
+                        showToast('This house is already assigned to another tenant.', { type: 'info', position: 'top' });
+                    } else {
+                        // Proceed to assign tenant
+                        tx.executeSql(
+                            'INSERT INTO tenants (name, phone, house_id) VALUES (?, ?, ?)',
+                            [name, phone, houseId],
+                            () => {
+                                setName('');
+                                setPhone('');
+                                fetchTenants();
+                                setAddNewTenant(false);
+                                showToast(`Tenant added & assigned a room`, { type: 'success' });
+                            }
+                        );
+                    }
                 }
             );
         });
     };
+
     useEffect(() => {
         fetchHouses()
         fetchTenants()
-    }, [tenants ])
-
+    }, [])
+    
     return (
         <View className='flex-1 bg-gray-100 p-4'>
             <Section title="Tenants"
@@ -91,8 +109,6 @@ const TenantScreen = () => {
                 }
             >
                 <View className="flex w-full flex-row items-center justify-between">
-                  
-
                     <FlatList
                         data={tenants.filter((x: any) => x.house_number !== null)}
                         keyExtractor={(item: any) => item.id.toString()}

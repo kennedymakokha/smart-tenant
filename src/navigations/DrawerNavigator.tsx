@@ -11,7 +11,7 @@ import { RootStackParamList } from "../../types";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { TouchableOpacity } from "react-native";
 import CustomDrawer from './customDrawer';
-import { HouseStack, RootStack, TenantsStack } from './stackNavigators';
+import { HouseStack, RentStack, RootStack, TenantsStack } from './stackNavigators';
 import CustomHeader from './customHeader';
 import { HouseTab } from './tabNavigator';
 import RentScreen from '../screens/RentScreen';
@@ -80,7 +80,7 @@ export function RootDrawer() {
                 options={{
                     headerShown: false
                 }}
-                component={RentScreen} />
+                component={RentStack} />
             <Drawer.Screen name="support"
                 options={{
                     header: () => <CustomHeader title="Help & support" />,

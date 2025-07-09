@@ -46,6 +46,13 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
             {/* Links */}
             <TouchableOpacity
                 className="flex-row items-center my-4"
+                onPress={() => navigation.navigate('Home')}
+            >
+                <Icon name="home" size={20} color="#fff" />
+                <Text className="text-white tracking-widest text-base ml-3">Home</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+                className="flex-row items-center my-4"
                 onPress={() => navigation.navigate('HouseStack')}
             >
                 <Icon name="home-outline" size={20} color="#fff" />
