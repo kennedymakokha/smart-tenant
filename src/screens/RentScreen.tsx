@@ -51,7 +51,7 @@ export default function RentScreen() {
     const addPayment = async (tenantId: any) => {
         const today = new Date();
         const day = today.getDate();
-        if (day < 1 || day > 8) {
+        if (day < 1 || day > 20) {
             showToast(`Rent can only be paid between 1st and 8th`, { type: 'error', position: "top" });
 
             return;

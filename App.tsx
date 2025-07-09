@@ -12,37 +12,16 @@ import ExportScreen from './src/screens/ExportScreen';
 import BackupRestoreScreen from './src/screens/BackupRestoreScreen';
 import "./global.css"
 import { ToastProvider } from './contexts/toastContext';
-const Tab = createBottomTabNavigator();
+import { AuthStack } from './src/navigations/stackNavigators';
+
 
 const App = () => {
   return (
     <SafeAreaProvider>
       <ToastProvider>
         <NavigationContainer>
-          <Tab.Navigator
-            screenOptions={({ route }) => ({
-              headerShown: true,
-              tabBarIcon: ({ color, size }) => {
-                let iconName = 'home-outline';
-                if (route.name === 'Tenants') iconName = 'people-outline';
-                else if (route.name === 'Rent') iconName = 'cash-outline';
-                else if (route.name === 'Missed Rent') iconName = 'alert-circle-outline';
-                else if (route.name === 'Summary') iconName = 'stats-chart-outline';
-                else if (route.name === 'Export') iconName = 'download-outline';
-                else if (route.name === 'Backup') iconName = 'cloud-upload-outline';
-                return <Icon name={iconName} size={size} color={color} />;
-              },
-            })}
-          >
-            <Tab.Screen name="Houses" component={HouseScreen} />
-            <Tab.Screen name="Tenants" component={TenantScreen} />
-            <Tab.Screen name="Rent" component={RentScreen} />
-            <Tab.Screen name="Missed Rent" component={MissedRentScreen} />
-            <Tab.Screen name="Summary" component={RentSummaryScreen} />
-            <Tab.Screen name="Export" component={ExportScreen} />
-            <Tab.Screen name="Backup" component={BackupRestoreScreen} />
-
-          </Tab.Navigator>
+         
+          <AuthStack />
         </NavigationContainer>
       </ToastProvider>
     </SafeAreaProvider>

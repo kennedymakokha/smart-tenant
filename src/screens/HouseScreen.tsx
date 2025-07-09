@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity } from 'react-native';
 import db, { initDB } from '../database/db';
 import { Button, Input } from '../components/ui/elements';
 
-const HouseScreen = () => {
+const HouseScreen = ({ navigation }: any) => {
     const [houseNumber, setHouseNumber] = useState('');
     const [houses, setHouses] = useState([]);
     const [rentAmount, setRentAmount] = useState('');
@@ -63,7 +63,8 @@ const HouseScreen = () => {
                 data={houses}
                 keyExtractor={(item: any) => item.id.toString()}
                 renderItem={({ item }) => (<View className='h-10 my-1 flex-row flex p-2 justify-between items-center border-slate-300 border rounded-md'>
-                    <Text>{item.house_number}</Text>
+
+                    <TouchableOpacity onPress={() => navigation.navigate('houseDetail', { house: item })} className="flex"><Text>{item.house_number}</Text></TouchableOpacity>
                     <Text> Ksh {item.rent_amount.toFixed(2)}</Text>
                 </View>
                 )}
