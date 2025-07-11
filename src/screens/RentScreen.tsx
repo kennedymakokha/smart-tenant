@@ -1,52 +1,24 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, Alert, TouchableOpacity } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import db from '../database/db';
-import { Button, Section } from '../components/ui/elements';
 import { useToast } from '../../contexts/toastContext';
-import { FormatDate } from '../../utils/dateFormarter';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useFocusEffect } from '@react-navigation/native';
 import { readMessages } from '../../utils/readSms';
-import { requestSmsPermission } from '../../utils/SmsPermisions';
-import SmsAndroid from 'react-native-get-sms-android';
-
+import uuid from 'react-native-uuid'; // Or any UUID library
+import NetInfo from '@react-native-community/netinfo';
+import { insertSMSAsync, markSMSAsUnsynced } from '../../utils/saveSms.local';
+import { useSendsmsMutation } from '../services/sms.service';
 export default function RentScreen({ navigation }: any) {
     const [tenants, setTenants] = useState([]);
+    const [sentMessage] = useSendsmsMutation()
     const [tenantId, setTenantId] = useState(null);
+    const [tenant, setTenant] = useState(null);
     const [payments, setPayments] = useState([]);
     const [messages, setMessages] = useState([]);
     const [month, setMonth] = useState('');
     const { showToast } = useToast()
-    useEffect(() => {
-        fetchTenants();
-        fetchPayments();
-    }, []);
-    async function readMessages() {
-        const hasPermission = await requestSmsPermission();
-        if (!hasPermission) {
-            console.warn('Permission not granted');
-            return;
-        }
 
-        const filter = {
-            box: 'inbox', // 'inbox' or 'sent' or 'draft'
-            maxCount: 100,
-        };
-
-        SmsAndroid.list(
-            JSON.stringify(filter),
-            fail => {
-                console.log('Failed with error: ' + fail);
-            },
-            (count, smsList) => {
-                const messages = JSON.parse(smsList);
-                setMessages(messages)
-                return messages
-                console.log('SMS Messages:', messages);
-            }
-        );
-    }
     useFocusEffect(
         useCallback(() => {
             fetchTenants();
@@ -98,58 +70,114 @@ export default function RentScreen({ navigation }: any) {
     const addPayment = async (tenantId: any) => {
         const today = new Date();
         const day = today.getDate();
-        if (day < 1 || day > 20) {
-            showToast(`Rent can only be paid between 1st and 8th`, { type: 'error', position: "top" });
 
+        if (day < 1 || day > 29) {
+            showToast(`Rent can only be paid between 1st and 8th`, { type: 'error', position: "top" });
             return;
         }
 
         const month = today.toLocaleString('default', { month: 'long' });
-        setMonth(month)
         const year = today.getFullYear();
         const date = today.toISOString();
-        const selected: any = tenants.find((t: any) => t.id === tenantId);
-        if (!selected) return;
 
-        const amount = selected.rent_amount;
+        const database = await db;
 
-        const dbConn = await db;
-        dbConn.transaction(tx => {
+        database.transaction(tx => {
             tx.executeSql(
-                `SELECT rp.*, t.name AS tenant_name 
-                 FROM rent_payments rp 
-                 JOIN tenants t ON rp.tenant_id = t.id 
-                 WHERE rp.tenant_id = ? AND rp.month = ? AND rp.year = ?`,
-                [tenantId, month, year],
-                (_, { rows }) => {
-                    if (rows.length > 0) {
-                        const tenantName = rows.item(0).tenant_name;
-                        showToast(`Already paid for ${month} by ${tenantName}`, { type: 'info', position: "bottom" });
-                    } else {
-                        tx.executeSql(
-                            'INSERT INTO rent_payments (tenant_id, amount, month, year, date_paid) VALUES (?, ?, ?, ?, ?)',
-                            [tenantId, amount, month, year, date],
-                            () => {
-                                fetchPayments();
-                                fetchTenants()
+                `SELECT * FROM tenants 
+                 LEFT JOIN houses ON tenants.house_id = houses.id 
+                 WHERE tenants.id = ?`,
+                [tenantId],
+                async (_, { rows }) => {
+                    if (rows.length === 0) {
+                        showToast("Tenant not found", { type: "error", position: "top" });
+                        return;
+                    }
 
-                                // Fetch tenant name again after insert, optional
+                    const tenant = rows.item(0);
+                    const phone = tenant.phone || tenant.phone_number;
+
+                    if (!phone) {
+                        showToast("Tenant phone number not available", { type: "error", position: "top" });
+                        return;
+                    }
+
+                    const amount = tenant.rent_amount;
+
+                    tx.executeSql(
+                        `SELECT * FROM rent_payments 
+                         WHERE tenant_id = ? AND month = ? AND year = ?`,
+                        [tenantId, month, year],
+                        (_, { rows: existing }) => {
+                            if (existing.length > 0) {
+                                showToast(`Already paid for ${month} by ${tenant.name}`, { type: 'info', position: "bottom" });
+                            } else {
                                 tx.executeSql(
-                                    'SELECT name FROM tenants WHERE id = ?',
-                                    [tenantId],
-                                    (_, { rows }) => {
-                                        const tenantName = rows.item(0).name;
-                                        Alert.alert('Payment recorded', `Payment recorded for ${tenantName}`);
+                                    `INSERT INTO rent_payments (tenant_id, amount, month, year, date_paid) 
+                                     VALUES (?, ?, ?, ?, ?)`,
+                                    [tenantId, amount, month, year, date],
+                                    async () => {
+                                        showToast(`Payment recorded for ${tenant.name}`, { type: 'success' });
+                                        fetchPayments();
+                                        fetchTenants();
+
+                                        // Send SMS confirmation after payment
+                                        await sendPaymentConfirmationSMS({
+                                            name: tenant.name,
+                                            phone: phone
+                                        });
                                     }
                                 );
                             }
-                        );
-                    }
+                        }
+                    );
                 }
             );
         });
-
     };
+
+    const sendPaymentConfirmationSMS = async (tenant: any) => {
+        const timestamp = Date.now();
+        const id = uuid.v4();
+        const netState = await NetInfo.fetch();
+        const synced = netState.isConnected ? 1 : 0;
+
+        const message = `Hi ${tenant.name}, we have received your rent payment for the month of ${month}. Thank you for staying with Siyenga Family.`;
+
+        const smsData = {
+            id,
+            message,
+            phone: tenant.phone,
+            ref: "payment",
+            timestamp,
+            synced
+        };
+
+        try {
+            const database = await db;
+            await insertSMSAsync(database, smsData);
+
+            if (synced === 1) {
+                try {
+                    await sentMessage({
+                        message,
+                        phone: tenant.phone,
+                        ref: "payment",
+                    }).unwrap();
+                    showToast("Payment confirmation SMS sent");
+                } catch (err) {
+                    console.error("Failed to send SMS online", err);
+                    await markSMSAsUnsynced(database, id);
+                }
+            }
+
+        } catch (error) {
+            console.error("Failed to save SMS locally:", error);
+            showToast("Failed to save confirmation SMS.");
+        }
+    };
+
+
     const TableHeader = () => (
         <View className="flex-row bg-gray-200 border-b border-gray-400">
 
@@ -186,7 +214,7 @@ export default function RentScreen({ navigation }: any) {
             </View>
         </View>
     );
-    console.log(messages)
+
     return (
         <View className="flex-1 bg-gray-100 p-4">
             <TableHeader />

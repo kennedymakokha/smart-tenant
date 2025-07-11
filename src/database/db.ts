@@ -27,6 +27,16 @@ export const initDB = async () => {
         FOREIGN KEY(house_id) REFERENCES houses(id)
       );`
     );
+    tx.executeSql(`
+      CREATE TABLE IF NOT EXISTS sms (
+          id TEXT PRIMARY KEY,
+          message TEXT,
+          phone TEXT,
+          ref TEXT,
+          timestamp INTEGER,
+          synced INTEGER DEFAULT 0
+      );
+  `);
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS rent_payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
