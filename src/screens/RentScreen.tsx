@@ -7,24 +7,55 @@ import { useToast } from '../../contexts/toastContext';
 import { FormatDate } from '../../utils/dateFormarter';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useFocusEffect } from '@react-navigation/native';
+import { readMessages } from '../../utils/readSms';
+import { requestSmsPermission } from '../../utils/SmsPermisions';
+import SmsAndroid from 'react-native-get-sms-android';
 
 export default function RentScreen({ navigation }: any) {
     const [tenants, setTenants] = useState([]);
     const [tenantId, setTenantId] = useState(null);
     const [payments, setPayments] = useState([]);
+    const [messages, setMessages] = useState([]);
     const [month, setMonth] = useState('');
     const { showToast } = useToast()
     useEffect(() => {
         fetchTenants();
         fetchPayments();
     }, []);
+    async function readMessages() {
+        const hasPermission = await requestSmsPermission();
+        if (!hasPermission) {
+            console.warn('Permission not granted');
+            return;
+        }
+
+        const filter = {
+            box: 'inbox', // 'inbox' or 'sent' or 'draft'
+            maxCount: 100,
+        };
+
+        SmsAndroid.list(
+            JSON.stringify(filter),
+            fail => {
+                console.log('Failed with error: ' + fail);
+            },
+            (count, smsList) => {
+                const messages = JSON.parse(smsList);
+                setMessages(messages)
+                return messages
+                console.log('SMS Messages:', messages);
+            }
+        );
+    }
     useFocusEffect(
         useCallback(() => {
             fetchTenants();
             fetchPayments();
+            readMessages()
+
         }, [])
     );
-   
+
     const fetchTenants = async () => {
         const today = new Date();
         const month = today.toLocaleString('default', { month: 'long' });
@@ -155,6 +186,7 @@ export default function RentScreen({ navigation }: any) {
             </View>
         </View>
     );
+    console.log(messages)
     return (
         <View className="flex-1 bg-gray-100 p-4">
             <TableHeader />

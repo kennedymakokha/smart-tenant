@@ -30,7 +30,7 @@ export function Section({ title, children, button }: any) {
         <View className="mb-6">
             <View className={`border border-slate-100 mb-2 px-2 rounded-md h-10  flex items-center ${button && "justify-between"} flex-row`}>
                 {/* <View className="flex border px-2  text-center py-1 rounded-md border-blue-300"> */}
-                    <Text className="text-lg font-semibold text-blue-300 text-center ">{title}</Text>
+                    <Text className="text-lg font-semibold text-slate-500 text-center ">{title}</Text>
                 {/* </View> */}
                 {button && button}
             </View>

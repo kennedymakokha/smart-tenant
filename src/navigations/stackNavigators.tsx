@@ -37,9 +37,9 @@ export function HouseStack() {
         <Stack.Navigator screenOptions={{ headerShown: true }}>
             <Stack.Screen name="houses"
                 options={{
-                    header: () => <CustomHeader title={`Houses`} />
+                   headerShown:false
                 }}
-                component={HouseScreen} />
+                component={HouseTab} />
             <Stack.Screen name="houseDetail"
                 options={({ route }: any) => {
                     return {
@@ -78,10 +78,15 @@ export function TenantsStack() {
     const Stack = createNativeStackNavigator(); ``
 
     return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-
-            <Stack.Screen name="tenants" component={TenantScreen} />
-            <Stack.Screen name="tenantDetail" component={TenantDetailScreen} />
+        <Stack.Navigator screenOptions={{ headerShown: true }}>
+            <Stack.Screen name="tenants" options={{ header: () => <CustomHeader title={`Tenants`} /> }} component={TenantScreen} />
+            <Stack.Screen name="tenantDetail"
+                options={({ route }: any) => {
+                    return {
+                        header: () => <CustomHeader back title={`${route.params.tenant.name}`} />,
+                    }
+                }}
+                component={TenantDetailScreen} />
             <Stack.Screen name="tenantPayments" component={TenantPayment} />
         </Stack.Navigator>
     );

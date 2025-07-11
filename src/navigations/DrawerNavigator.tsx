@@ -15,6 +15,7 @@ import { HouseStack, RentStack, RootStack, TenantsStack } from './stackNavigator
 import CustomHeader from './customHeader';
 import { HouseTab } from './tabNavigator';
 import RentScreen from '../screens/RentScreen';
+import ExportScreen from '../screens/ExportScreen';
 
 
 
@@ -86,6 +87,11 @@ export function RootDrawer() {
                     header: () => <CustomHeader title="Help & support" />,
                 }}
                 component={HouseStack} />
+            <Drawer.Screen name="export"
+                options={{
+                    header: () => <CustomHeader title="Export Data" />,
+                }}
+                component={ExportScreen} />
             {/* <Drawer.Screen name="forum" options={{
                 headerShown: false
                 // header: () => <CustomHeader title="JOSAM TALKS" />,

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, TouchableOpacity } from 'react-native';
 import db, { initDB } from '../database/db';
 import { Button, Input, Section } from '../components/ui/elements';
@@ -6,9 +6,12 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import BottomModal from '../components/ui/bottomModal';
 import { useToast } from '../../contexts/toastContext';
 import { Picker } from '@react-native-picker/picker';
-const HouseScreen = ({ navigation }: any) => {
+import { useFocusEffect } from '@react-navigation/native';
+const HouseScreen = ({ navigation, route }: any) => {
+    const { state } = route.params;
     const [houseNumber, setHouseNumber] = useState('');
     const [houses, setHouses] = useState([]);
+    const [vhouses, setVacantHouseData] = useState([]);
     const [rentAmount, setRentAmount] = useState('');
     const [category, setCategory] = useState('');
     const [addNewHouse, setAddNewHouse] = useState(false);
@@ -28,6 +31,22 @@ const HouseScreen = ({ navigation }: any) => {
                     setHouses(rows);
                 }
             );
+
+            tx.executeSql(
+                `SELECT h.name,
+                        h.category,
+                        h.rent_amount
+                 FROM houses h
+                 LEFT JOIN tenants t ON h.id = t.house_id
+                 WHERE t.house_id IS NULL`,
+                [],
+                (_, result) => {
+                    console.log("vacantHouses", result)
+                    const vacantHouses: any = result.rows.raw();
+                    console.log("vacantHouses")
+                    setVacantHouseData(vacantHouses);
+                }
+            )
         });
     };
 
@@ -36,8 +55,8 @@ const HouseScreen = ({ navigation }: any) => {
         const database = await db;
         database.transaction(tx => {
             tx.executeSql(
-                'INSERT INTO houses (house_number, location, rent_amount) VALUES (?, ?, ?)',
-                [houseNumber, '', parseFloat(rentAmount)],
+                'INSERT INTO houses (house_number, location, rent_amount,category) VALUES (?, ?, ?,?)',
+                [houseNumber, '', parseFloat(rentAmount), category],
                 () => {
                     setHouseNumber('');
                     setRentAmount('');
@@ -81,6 +100,11 @@ const HouseScreen = ({ navigation }: any) => {
 
         </View>
     );
+    useFocusEffect(
+        useCallback(() => {
+            fetchHouses();
+        }, [])
+    );
     return (
         <View className='flex-1 bg-gray-100 p-4'>
             <Section title="List"
@@ -92,7 +116,7 @@ const HouseScreen = ({ navigation }: any) => {
             >
                 <TableHeader />
                 <FlatList
-                    data={houses}
+                    data={state === "occ" ? houses : vhouses}
                     keyExtractor={(item: any) => item.id.toString()}
                     renderItem={({ item }) => <TableRow item={item} />}
                 />
@@ -117,6 +141,7 @@ const HouseScreen = ({ navigation }: any) => {
                             <Picker.Item key="1" label="Single" value="single" />
                             <Picker.Item key="2" label="Double" value="double" />
                             <Picker.Item key="3" label="BedSitter" value="bedSitter" />
+                            <Picker.Item key="7" label="Shop" value="shop" />
                             <Picker.Item key="4" label="One Bedroom" value="one-bedroom" />
                             <Picker.Item key="5" label="Two Bedroom" value="two-bedroom" />
                             <Picker.Item key="6" label="Three Bedroom" value="three-bedroom" />

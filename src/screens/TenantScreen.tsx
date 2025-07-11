@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, Alert, TouchableOpacity } from 'react-native';
 import db from '../database/db';
 import { Picker } from '@react-native-picker/picker';
@@ -7,18 +7,17 @@ import { Button, Input, Section } from '../components/ui/elements';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import BottomModal from '../components/ui/bottomModal';
 import { useToast } from '../../contexts/toastContext';
-const TenantScreen = () => {
+import { useFocusEffect } from '@react-navigation/native';
+const TenantScreen = ({ navigation }: any) => {
     const { showToast } = useToast();
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [id, setId] = useState('');
     const [houseId, setHouseId] = useState(null);
     const [houses, setHouses] = useState([]);
     const [tenants, setTenants] = useState([]);
     const [addNewTenant, setAddNewTenant] = useState(false);
-    useEffect(() => {
-        fetchHouses();
-        fetchTenants();
-    }, []);
+
 
     const fetchHouses = async () => {
         const database = await db;
@@ -64,7 +63,7 @@ const TenantScreen = () => {
             Alert.alert("house not selected")
             return
         };
-      
+
         const database = await db;
 
         // Check if the house is already assigned
@@ -78,8 +77,8 @@ const TenantScreen = () => {
                     } else {
                         // Proceed to assign tenant
                         tx.executeSql(
-                            'INSERT INTO tenants (name, phone, house_id) VALUES (?, ?, ?)',
-                            [name, phone, houseId],
+                            'INSERT INTO tenants (name, phone, house_id,national_id) VALUES (?, ?, ?, ?)',
+                            [name, phone, houseId, id],
                             () => {
                                 setName('');
                                 setPhone('');
@@ -94,11 +93,53 @@ const TenantScreen = () => {
         });
     };
 
-    useEffect(() => {
-        fetchHouses()
-        fetchTenants()
-    }, [])
-    
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchHouses()
+            fetchTenants()
+        }, [])
+    );
+    const TableHeader = () => (
+        <View className="flex-row bg-gray-200 border-b border-gray-400">
+
+            <View className="w-[40%] p-2">
+                <Text className="font-bold text-gray-800">Name</Text>
+            </View>
+            <View className="w-[20%] p-2">
+                <Text className="font-bold text-gray-800">ID</Text>
+            </View>
+            <View className="w-[20%] p-2">
+                <Text className="font-bold text-gray-800">House</Text>
+            </View>
+            <View className="w-[20%] p-2">
+                <Text className="font-bold text-gray-800">action</Text>
+            </View>
+
+        </View>
+    );
+
+    const TableRow = ({ item }: any) => (
+        <View className="flex-row border-b  border-gray-300 bg-white">
+            <View className="w-[40%] p-2  justify-center flex">
+                <TouchableOpacity onPress={() => navigation.navigate('tenantDetail', { tenant: item, data: houses })} className="flex">
+                    <Text className="text-gray-700">{item.name}</Text>
+                </TouchableOpacity>
+            </View>
+            <View className="w-[20%]  justify-center flex  p-2">
+                <Text className="text-gray-700"> {item.national_id}</Text>
+            </View>
+            <View className="w-[20%]  justify-center flex  p-2">
+                <Text className="text-gray-700"> {item.house_number}</Text>
+            </View>
+            <View className="w-[20%]  justify-center flex  p-2">
+                <TouchableOpacity onPress={() => unassignTenant(item.id)} className=" border rounded-sm  px-2 border-slate-300  items-center justify-center flex">
+                    <Icon name="cancel" size={20} color="gray" />
+                </TouchableOpacity>
+            </View>
+
+        </View>
+    );
     return (
         <View className='flex-1 bg-gray-100 p-4'>
             <Section title="Tenants"
@@ -108,23 +149,13 @@ const TenantScreen = () => {
                     </TouchableOpacity>
                 }
             >
-                <View className="flex w-full flex-row items-center justify-between">
+                <View className="flex ">
+                    <TableHeader />
                     <FlatList
                         data={tenants.filter((x: any) => x.house_number !== null)}
                         keyExtractor={(item: any) => item.id.toString()}
-                        renderItem={({ item }) => (
-                            <View className={`${item.house_number ? "bg-white" : "bg-slate-200"} p-3 rounded mb-1 h-14  flex-row flex p-2 justify-between items-center border-slate-200 border`}>
-                                <Text className='strikethrough'>{item.name}</Text>
-                                <View className='flex items-center flex-row gap-x-2'>
-                                    <Text>Rm/{item.house_number}</Text>
-                                    <TouchableOpacity onPress={() => unassignTenant(item.id)} className='flex items-center rounded-sm border-slate-200 justify-center border p-1'>
-                                        <Icon name="cancel" size={20} color="red" />
-                                    </TouchableOpacity>
+                        renderItem={({ item }) => <TableRow item={item} />}
 
-                                </View>
-                            </View>
-
-                        )}
                     />
                 </View>
 
@@ -145,6 +176,13 @@ const TenantScreen = () => {
                             placeholder="Phone Number"
                             value={phone}
                             onChangeText={setPhone}
+                            style={{ borderWidth: 1, marginBottom: 10, padding: 5 }}
+                            keyboardType="phone-pad"
+                        />
+                        <Input
+                            placeholder="ID Number"
+                            value={id}
+                            onChangeText={setId}
                             style={{ borderWidth: 1, marginBottom: 10, padding: 5 }}
                             keyboardType="phone-pad"
                         />

@@ -15,7 +15,7 @@ function CustomHeader({ title, icon, icon_off, add, back }: { icon_off?: string,
     return (
         <View
 
-            className="flex-row items-center justify-between p-4   bg-green-50 shadow-md">
+            className="flex-row items-center justify-between p-4 bg-slate-800 shadow-md">
             <View className={` flex-row items-center justify-between  w-full `}>
 
                 <View className="flex-row items-center ">
@@ -23,16 +23,16 @@ function CustomHeader({ title, icon, icon_off, add, back }: { icon_off?: string,
                         onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
                         className="mr-4"
                     >
-                        <Ionicons name="menu" size={24} color={`red`} />
+                        <Ionicons name="menu" size={24} color={`white`} />
                     </TouchableOpacity> :
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
                             className="mr-4"
                         >
-                            <Icon name="arrow-left" size={20} color="#044ee3" />
+                            <Icon name="arrow-left" size={20} color="#fff" />
                         </TouchableOpacity>}
                     <View className="flex-row items-center  justify-between  ">
-                        <Text className="text-lg uppercase text-[#044ee3] font-semibold  tracking-widest">{title}</Text>
+                        <Text className="text-2xl uppercase text-[#fff] font-semibold  tracking-widest">{title}</Text>
                     </View>
                 </View>
 
