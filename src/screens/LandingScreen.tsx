@@ -5,6 +5,7 @@ import db from '../database/db';
 import { Section } from '../components/ui/elements';
 import { useFocusEffect } from '@react-navigation/native';
 import { LineChart } from 'react-native-gifted-charts';
+import { useGetsmsBalanceMutation } from '../services/sms.service';
 export default function DashboardScreen() {
     const [occupancyData, setOccupancyData] = useState([]);
     const [rentData, setRentData] = useState([]);
@@ -21,10 +22,18 @@ export default function DashboardScreen() {
         '#fb923c', // orange
         '#a78bfa', // purple
     ];
-
+    const [fetchBalance] = useGetsmsBalanceMutation()
+    const findBalance = async () => {
+        let v = await fetchBalance({}).unwrap()
+        console.log(v)
+    }
+    useEffect(() => {
+        findBalance()
+    }, [])
     useFocusEffect(
         useCallback(() => {
             fetchStats();
+            findBalance()
         }, [])
     );
 

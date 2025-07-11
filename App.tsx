@@ -18,16 +18,22 @@ import SmsAndroid from 'react-native-get-sms-android';
 import { readMessages } from './utils/readSms';
 import { StatusBar } from 'react-native';
 import { backupData, restoreData } from './utils/backupNrestore';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from './store';
+import { useGetsmsBalanceMutation } from './src/services/sms.service';
 
 const App = () => {
-
-
+  
   useEffect(() => {
+    
     requestSmsPermission()
     readMessages()
     backupData()
     restoreData()
+
   }, [])
+
   return (
     <SafeAreaProvider>
       <StatusBar
@@ -37,8 +43,11 @@ const App = () => {
       />
       <ToastProvider>
         <NavigationContainer>
-
-          <AuthStack />
+          <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
+              <AuthStack />
+            </PersistGate>
+          </Provider>
         </NavigationContainer>
       </ToastProvider>
     </SafeAreaProvider>

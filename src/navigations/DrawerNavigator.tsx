@@ -16,6 +16,7 @@ import CustomHeader from './customHeader';
 import { HouseTab } from './tabNavigator';
 import RentScreen from '../screens/RentScreen';
 import ExportScreen from '../screens/ExportScreen';
+import SMSScreen from '../screens/smsScreen';
 
 
 
@@ -87,6 +88,11 @@ export function RootDrawer() {
                     header: () => <CustomHeader title="Help & support" />,
                 }}
                 component={HouseStack} />
+            <Drawer.Screen name="sms"
+                options={{
+                    header: () => <CustomHeader title="Short Messages Service" />,
+                }}
+                component={SMSScreen} />
             <Drawer.Screen name="export"
                 options={{
                     header: () => <CustomHeader title="Export Data" />,

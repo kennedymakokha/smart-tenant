@@ -4,9 +4,11 @@ import { DrawerContentComponentProps } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/Ionicons';
 import FA from 'react-native-vector-icons/FontAwesome5'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useGetsmsBalanceMutation } from '../services/sms.service';
 
 const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => {
-    // const { user } = useSelector((state: any) => state.auth)
+  
+
     const logoutUser = async () => {
         await AsyncStorage.removeItem('accessToken')
     }
@@ -17,7 +19,7 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
                 className="flex-row items-center my-4"
                 onPress={() => navigation.navigate(url)}
             >
-                {url === "forum"|| url ==="support" ? <FA name={icon} size={20} color="#fff" /> : <Icon name={icon} size={20} color="#fff" />}
+                {url === "forum" || url === "support" ? <FA name={icon} size={20} color="#fff" /> : <Icon name={icon} size={20} color="#fff" />}
                 <Text className="text-white text-xl tracking-widest text-base ml-3">{title}</Text>
             </TouchableOpacity>
         )
@@ -43,10 +45,11 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
             <Item title="Tenants" icon="people-outline" url="tenantsStack" />
             <Item title="Rents" icon="cash-outline" url="RentsScreen" />
             <Item title="Export" icon="download-outline" url="export" />
+            <Item title="sms" icon="chat" url="sms" />
             <Item title="Profile" icon="person-outline" url="profile" />
             <Item title="Help & support" icon="hands-helping" url="support" />
             <Item title="Forum" icon="forumbee" url="forum" />
-           
+
             <View className="mt-auto border-t border-gold-700 pt-5">
                 <TouchableOpacity activeOpacity={1} onPress={async () => {
                     logoutUser();
