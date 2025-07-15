@@ -3,9 +3,9 @@ import HouseDetailScreen from "../screens/HouseDetailScreen";
 import HouseScreen from "../screens/HouseScreen";
 import LoginScreen from "../screens/LoginScreen";
 import SplashScreen from "../screens/splashScreen";
-import TenantDetailScreen from "../screens/TenantDetailScreen";
-import TenantPayment from "../screens/TenantPayment";
-import TenantScreen from "../screens/TenantScreen";
+
+import TenantPayment from "../screens/tenants/TenantPayment";
+import TenantScreen from "../screens/tenants/TenantScreen";
 import CustomHeader from "./customHeader";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { RootDrawer } from "./DrawerNavigator";
@@ -13,6 +13,9 @@ import LandingScreen from "../screens/LandingScreen";
 import { HouseTab } from "./tabNavigator";
 import RentScreen from "../screens/RentScreen";
 import RentDetailscreen from "../screens/RentDetailscreen";
+import SMSScreen from "../screens/sms/smsScreen";
+import SMSDetailsSMSScreen from "../screens/sms/smsDetailsScreen";
+import TenantDetailScreen from "../screens/tenants/TenantDetailScreen";
 
 export function AuthStack() {
 
@@ -37,7 +40,7 @@ export function HouseStack() {
         <Stack.Navigator screenOptions={{ headerShown: true }}>
             <Stack.Screen name="houses"
                 options={{
-                   headerShown:false
+                    headerShown: false
                 }}
                 component={HouseTab} />
             <Stack.Screen name="houseDetail"
@@ -69,6 +72,28 @@ export function RentStack() {
                     }
                 }}
                 component={RentDetailscreen} />
+
+        </Stack.Navigator>
+    );
+}
+export function smsStack() {
+
+    const Stack = createNativeStackNavigator();
+
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: true }}>
+            <Stack.Screen name="smsStack"
+                options={{
+                    header: () => <CustomHeader title="Short Messages Service" />,
+                }}
+                component={SMSScreen} />
+            <Stack.Screen name="smsDetilsDetail"
+                options={({ route }: any) => {
+                    return {
+                        header: () => <CustomHeader back title={`${route.params.phone}  SMS  History`} />,
+                    }
+                }}
+                component={SMSDetailsSMSScreen} />
 
         </Stack.Navigator>
     );

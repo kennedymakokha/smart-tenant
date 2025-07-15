@@ -40,9 +40,11 @@ const CenterModal: React.FC<Props> = ({
                             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                             className="w-full bg-white p-4 rounded-xl"
                         >
-                            <Text className="text-lg font-bold mb-2">{title}</Text>
+                            <View className="flex py-2 border-b border-[#FF6701]">
+                            <Text className="text-lg text-center text-[#FF6701] font-bold mb-2 ">{title}</Text>
+                            </View>
                             {body}
-                            <Button loading={loading} title={buttonTitle ? buttonTitle : title} action={onConfirm} />
+                            <Button loading={loading} title={buttonTitle ? buttonTitle : title} onPress={onConfirm} />
 
                         </KeyboardAvoidingView>
                     </TouchableWithoutFeedback>

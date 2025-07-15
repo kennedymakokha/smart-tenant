@@ -43,7 +43,7 @@ export default function DashboardScreen() {
                     const { occupied_rent, vacant_rent } = result.rows.item(0);
                     setOccupancyData([
                         { value: occupied_rent || 0, label: 'Occupied', color: '#1e293b' },
-                        { value: vacant_rent || 0, label: 'Vacant', color: '#f87171' }
+                        { value: vacant_rent || 0, label: 'Vacant', color: '#FF6701' }
                     ]);
                 }
             );
@@ -112,7 +112,7 @@ export default function DashboardScreen() {
                     setCategoryLineData([
                         { data: totalLine, color: '#94a3b8', label: 'Total Houses' },    // gray
                         { data: occupiedLine, color: '#1e293b', label: 'Occupied Houses' }, // blue
-                        { data: vacantLine, color: '#f87171', label: 'Vacant Houses' }   // red
+                        { data: vacantLine, color: '#FF6701', label: 'Vacant Houses' }   // red
                     ]);
 
                     setCategoryLabels(labels);
@@ -141,7 +141,7 @@ export default function DashboardScreen() {
                             },
                             {
                                 value: item.vacant,
-                                color: '#f87171',
+                                color: '#FF6701',
                                 label: 'Vacant',
                             },
                         ],
@@ -240,7 +240,7 @@ export default function DashboardScreen() {
                                     <Text className="text-sm">Occupied</Text>
                                 </View>
                                 <View className="flex-row items-center gap-x-2">
-                                    <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f87171' }} />
+                                    <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#FF6701' }} />
                                     <Text className="text-sm">Vacant</Text>
                                 </View>
                             </View>
@@ -292,7 +292,7 @@ export default function DashboardScreen() {
                                     <Text className="text-sm">Occupied</Text>
                                 </View>
                                 <View className="flex-row items-center gap-x-2">
-                                    <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f87171' }} />
+                                    <View className="w-4 h-4 rounded-full" style={{ backgroundColor: '#FF6701' }} />
                                     <Text className="text-sm">Vacant</Text>
                                 </View>
                             </View>

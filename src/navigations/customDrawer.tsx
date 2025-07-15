@@ -16,6 +16,7 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
     const Item = ({ url, icon, title }: any) => {
         return (
             <TouchableOpacity
+            activeOpacity={0.8}
                 className="flex-row items-center my-4"
                 onPress={() => navigation.navigate(url)}
             >
@@ -30,13 +31,13 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
             className="flex-1 py-16 px-5 bg-slate-800">
             {/* Header */}
             <View className="items-center border-b border-white pb-4 mb-10">
-                {/* <Image
+                <Image
                     source={require('./../../assets/logo.png')}
                     className="w-44 h-44 rounded-full mb-4"
                     resizeMode="contain"
-                /> */}
-                <Text className="text-white  tracking-widest text-lg">admin 101</Text>
-                <Text className="text-white capitalize tracking-widest text-center text-lg">Admin</Text>
+                />
+                <Text className="text-white  tracking-widest text-lg">Administarator</Text>
+                <Text className="text-white capitalize tracking-widest text-center text-lg">admin</Text>
             </View>
 
             {/* Links */}
@@ -44,7 +45,7 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
             <Item title="Houses" icon="home-outline" url="HouseStack" />
             <Item title="Tenants" icon="people-outline" url="tenantsStack" />
             <Item title="Rents" icon="cash-outline" url="RentsScreen" />
-            <Item title="Export" icon="download-outline" url="export" />
+            {/* <Item title="Export" icon="download-outline" url="export" /> */}
             <Item title="sms" icon="chatbox-outline" url="sms" />
             <Item title="Profile" icon="person-outline" url="profile" />
             <Item title="Help & support" icon="hands-helping" url="support" />

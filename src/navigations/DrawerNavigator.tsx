@@ -11,12 +11,12 @@ import { RootStackParamList } from "../../types";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { TouchableOpacity } from "react-native";
 import CustomDrawer from './customDrawer';
-import { HouseStack, RentStack, RootStack, TenantsStack } from './stackNavigators';
+import { HouseStack, RentStack, RootStack, smsStack, TenantsStack } from './stackNavigators';
 import CustomHeader from './customHeader';
 import { HouseTab } from './tabNavigator';
 import RentScreen from '../screens/RentScreen';
 import ExportScreen from '../screens/ExportScreen';
-import SMSScreen from '../screens/smsScreen';
+import SMSScreen from '../screens/sms/smsScreen';
 
 
 
@@ -90,9 +90,9 @@ export function RootDrawer() {
                 component={HouseStack} />
             <Drawer.Screen name="sms"
                 options={{
-                    header: () => <CustomHeader title="Short Messages Service" />,
+                    headerShown:false
                 }}
-                component={SMSScreen} />
+                component={smsStack} />
             <Drawer.Screen name="export"
                 options={{
                     header: () => <CustomHeader title="Export Data" />,

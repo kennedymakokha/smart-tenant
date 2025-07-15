@@ -3,10 +3,12 @@ import React, { useCallback, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons'
-import db from '../database/db';
+import db from '../../database/db';
 import { useFocusEffect } from '@react-navigation/native';
-import { generateRentPDF, RentTableHeader, RentTableRow } from './rentTable';
-import { Section } from '../components/ui/elements';
+import { generateRentPDF, RentTableHeader, RentTableRow } from './../rentTable';
+import { Section } from '../../components/ui/elements';
+import { useToast } from '../../../contexts/toastContext';
+import { exportPaymentPDF } from './components';
 
 const TenantDetailScreen = ({ route }: any) => {
     const { tenant, data } = route.params;
@@ -16,6 +18,7 @@ const TenantDetailScreen = ({ route }: any) => {
     const [houseNumber, setHouseNumber] = useState(tenant.house_number);
     const [payments, setPayments] = useState([]);
     const [loading, setLoading] = useState(true)
+    const { showToast } = useToast();
     const handleSave = () => {
         // Save logic
         console.log('Saved tenant:', { name, nationalId, houseNumber });
@@ -39,20 +42,24 @@ const TenantDetailScreen = ({ route }: any) => {
                 [tenantId],
                 (_, results: any) => {
                     setPayments(results.rows.raw());
+                    setLoading(false); // Move here
                 },
                 (txObj, error) => {
                     console.error("Error fetching tenant payments:", error);
-                    return true; // roll back on error
+                    showToast("Failed to load payments.", { type: "error" });
+                    setLoading(false);
+                    return true;
                 }
             );
         });
-        setLoading(false)
     };
+
     useFocusEffect(
         useCallback(() => {
             fetchPayments(tenant.id);
         }, [])
     );
+
 
     const Item = ({ title, onchange, color, icon, value, keyboardType }: any) => {
         return (
@@ -151,7 +158,15 @@ const TenantDetailScreen = ({ route }: any) => {
                 </View>
 
                 {/* Payment Section */}
-                <Section title="Payment history">
+                <Section title="Payment history"
+                    button={
+                        <View className='flex flex-row gap-x-2'>
+                            <TouchableOpacity onPress={() => exportPaymentPDF(payments)} className='h-6 px-2   rounded-sm justify-center items-center border-slate-200  border  flex '>
+                                <Icon name="picture-as-pdf" size={20} color="#FF6701" />
+                            </TouchableOpacity>
+                        </View>
+                    }
+                >
                     <RentTableHeader />
                     <FlatList
                         data={payments}
@@ -172,90 +187,6 @@ const TenantDetailScreen = ({ route }: any) => {
             </TouchableOpacity>
         </View>
 
-        // <View className="flex-1 bg-gray-100 px-4 py-6">
-        //     <View className="bg-white rounded-2xl shadow-md p-5 space-y-6">
-        //         {/* Top Row: Title + Action Buttons */}
-        //         <View className="absolute top-6 right-6 z-10 flex-row space-x-2">
-        //             {isEditing ? (
-        //                 <>
-        //                     <TouchableOpacity
-        //                         onPress={handleCancel}
-        //                         className="bg-gray-300 px-4 py-2 rounded-full shadow"
-        //                     >
-        //                         <Text className="text-gray-800 font-medium">Cancel</Text>
-        //                     </TouchableOpacity>
-        //                     <TouchableOpacity
-        //                         onPress={handleSave}
-        //                         className="bg-blue-600 px-4 py-2 rounded-full shadow"
-        //                     >
-        //                         <Text className="text-white font-medium">Save</Text>
-        //                     </TouchableOpacity>
-        //                 </>
-        //             ) : (
-        //                 <TouchableOpacity
-        //                     onPress={() => setIsEditing(true)}
-        //                     className="bg-green-600 p-3 rounded-full shadow"
-        //                 >
-        //                     <Icon name="edit" size={20} color="#FFF" />
-        //                 </TouchableOpacity>
-        //             )}
-        //         </View>
-        //         <Item
-        //             title="Full Name"
-        //             onchange={setName}
-        //             value={name}
-        //             icon="person"
-        //             keyboardType="default"
-        //             color="#2563EB"
-        //         />
-
-        //         <Item
-        //             title="National ID"
-        //             onchange={setNationalId}
-        //             value={nationalId}
-        //             icon="badge"
-        //             keyboardType="numeric"
-        //         />
-
-        //         {/* House Number Field */}
-        //         <View className="flex-row items-center space-x-4">
-        //             <View className="border-green-100 border p-2 rounded-full">
-        //                 <Icon name="home" size={22} color="#CA8A04" />
-        //             </View>
-        //             <View className="flex-1">
-        //                 <Text className="text-sm text-gray-500">House Number</Text>
-        //                 {isEditing ? (
-        //                     <Picker
-        //                         selectedValue={houseNumber}
-        //                         onValueChange={(value) => setHouseNumber(value)}
-        //                         style={{ height: 50, marginBottom: 10 }}
-        //                     >
-        //                         {data.map((h: any) => (
-        //                             <Picker.Item key={h.id} label={h.house_number} value={h.id} />
-        //                         ))}
-        //                     </Picker>
-        //                 ) : (
-        //                     <Text className="text-lg font-medium text-gray-800">{houseNumber}</Text>
-        //                 )}
-        //             </View>
-        //         </View>
-        //     </View>
-        //     <Section title="Payment history">
-        //         <RentTableHeader />
-        //         <FlatList
-        //             data={payments}
-        //             keyExtractor={(item, index) => index.toString()}
-        //             renderItem={({ item }) => <RentTableRow item={item} />}
-        //         />
-        //         <TouchableOpacity
-        //             className="absolute bottom-6 right-6 bg-blue-600 p-4 rounded-full shadow-lg"
-        //             onPress={() => generateRentPDF(payments, tenant.id)}
-        //         >
-        //             <Ionicons name="share-outline" size={24} color="white" />
-        //         </TouchableOpacity>
-        //     </Section>
-
-        // </View>
     );
 };
 

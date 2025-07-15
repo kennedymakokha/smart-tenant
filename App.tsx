@@ -10,16 +10,17 @@ import { backupData, restoreData } from './utils/backupNrestore';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { persistor, store } from './store';
+import { LogBox, Platform, UIManager } from 'react-native';
 
+if (Platform.OS === 'android') {
+  UIManager.setLayoutAnimationEnabledExperimental?.(true);
+  LogBox.ignoreLogs(['setLayoutAnimationEnabledExperimental is currently a no-op']);
+}
 const App = () => {
-  
-  useEffect(() => {
-    
-    requestSmsPermission()
-   
-    // backupData()
-    // restoreData()
 
+  useEffect(() => {
+    backupData()
+    restoreData()
   }, [])
 
   return (

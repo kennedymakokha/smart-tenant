@@ -19,7 +19,7 @@ export function HouseTab() {
                     return <Icon name={iconName} size={size} color={color} />;
                 },
                 tabBarActiveTintColor: '#f87171', // tailwind orange-500
-                tabBarInactiveTintColor: 'red', // tailwind blue-700
+                tabBarInactiveTintColor: '#FF6701', // tailwind blue-700
                 tabBarStyle: {
                     paddingTop:10,
                     backgroundColor: "#1e293b", // tailwind green-400

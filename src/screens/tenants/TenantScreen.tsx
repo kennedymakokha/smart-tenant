@@ -1,27 +1,33 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TextInput, FlatList, Alert, TouchableOpacity } from 'react-native';
-import db from '../database/db';
+import db from '../../database/db';
 import { Picker } from '@react-native-picker/picker';
-import { Button, Input, Section } from '../components/ui/elements';
+import { Button, Input, Section } from '../../components/ui/elements';
 import uuid from 'react-native-uuid'; // Or any UUID library
 import NetInfo from '@react-native-community/netinfo';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import BottomModal from '../components/ui/bottomModal';
-import { useToast } from '../../contexts/toastContext';
+import BottomModal from '../../components/ui/bottomModal';
+import { useToast } from '../../../contexts/toastContext';
 import { useFocusEffect } from '@react-navigation/native';
-import { fetchTenants } from '../database/tenants';
-import { useSendsmsMutation } from '../services/sms.service';
-import { TENANTItem } from '../../types';
-import { insertSMSAsync, markSMSAsUnsynced } from '../../utils/saveSms.local';
+import { fetchTenants } from '../../database/tenants';
+import { useSendsmsMutation } from '../../services/sms.service';
+
+import Share from 'react-native-share';
+import RNHTMLtoPDF from 'react-native-html-to-pdf';
+import { insertSMSAsync, markSMSAsUnsynced } from '../../../utils/saveSms.local';
 import { ActivityIndicator } from 'react-native';
+import { maskID, maskPhone, SkeletonList, TableHeader, TableRow } from './components';
+import CenterModal from '../../components/ui/centerModal';
 const TenantScreen = ({ navigation }: any) => {
     const { showToast } = useToast();
     const [name, setName] = useState('');
     const [phone, setPhone] = useState('');
+    const [show, setShow] = useState(false)
     const [id, setId] = useState('');
     const [houseId, setHouseId] = useState(null);
     const [houses, setHouses] = useState([]);
     const [tenants, setTenants] = useState([]);
+    const [tenant, setTenant] = useState<any>(null);
     const [addNewTenant, setAddNewTenant] = useState(false);
     const [sentMessage] = useSendsmsMutation()
     const [loading, setLoading] = useState(true)
@@ -41,7 +47,9 @@ const TenantScreen = ({ navigation }: any) => {
     const loadTenants: any = async () => {
         const tenants: any = await fetchTenants();
         setTenants(tenants);
-        setLoading(false)
+        setTimeout(() => {
+            setLoading(false);
+        }, 3000);
     };
 
     const unassignTenant = async (tenantId: any) => {
@@ -58,6 +66,64 @@ const TenantScreen = ({ navigation }: any) => {
             );
         });
     };
+    const exportPDF = async () => {
+
+        if (!tenants || tenants.length === 0) {
+            showToast('No tenant data to export.', { type: 'info' });
+            return;
+        }
+
+        const rowsHtml = tenants
+            .map(
+                (tenant: any) => `
+            <tr>
+              <td>${tenant.name}</td>
+              <td>${maskID(tenant.national_id || '')}</td>
+              <td>${maskPhone(tenant.phone || '')}</td>
+              <td>${tenant.house_number || '-'}</td>
+            </tr>`
+            )
+            .join('');
+
+        const html = `
+          <html>
+            <body>
+              <h2>Tenant List</h2>
+              <table border="1" style="width:100%; text-align:left; border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>ID</th>
+                    <th>Phone</th>
+                    <th>House</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </body>
+          </html>
+        `;
+
+        try {
+            const pdf = await RNHTMLtoPDF.convert({
+                html,
+                fileName: 'tenant-list',
+                directory: 'Documents',
+            });
+
+            await Share.open({ url: 'file://' + pdf.filePath, type: 'application/pdf' })
+                .catch(() => {
+                    showToast(`PDF saved to:\n${pdf.filePath}`, { type: "success", position: "top" });
+                });
+
+        } catch (error) {
+            console.error("PDF Export Error:", error);
+            showToast("Failed to export tenant PDF.", { type: 'error' });
+        }
+    };
+
     const assignTenant = async () => {
         if (!name || !houseId || !phone) {
             showToast('Enter all fields', { type: 'error', position: "top" });
@@ -72,7 +138,7 @@ const TenantScreen = ({ navigation }: any) => {
                 [houseId],
                 async (_, { rows }) => {
                     if (rows.length > 0) {
-                        showToast('This house is already assigned to another tenant.', { type: 'info', position: 'top' });
+                        showToast('This house is already assigned to another tenant.', { type: 'error', position: 'top' });
                     } else {
                         tx.executeSql(
                             'INSERT INTO tenants (name, phone, house_id, national_id) VALUES (?, ?, ?, ?)',
@@ -86,7 +152,7 @@ const TenantScreen = ({ navigation }: any) => {
                                 loadTenants();
 
                                 showToast(`Tenant added & assigned a room`, { type: 'success' });
-
+                                setShow(false)
                                 // Now that tenant is available, send SMS
                                 await sendTenantWelcomeSMS(newTenant);
                             }
@@ -103,7 +169,7 @@ const TenantScreen = ({ navigation }: any) => {
         const netState = await NetInfo.fetch();
         const synced = netState.isConnected ? 1 : 0;
 
-        const message = `Hi ${tenant.name}, welcome to Siyenga Family. We delight in having you join this fam.`;
+        const message = `Hi ${tenant.name}, welcome to Siyenga Family. We delight in having you join this family.\nAt siyenga all the amenities are guaranteed for your comfort\n*Water\n*Electricity\n*Security `;
 
         const smsData = {
             id,
@@ -143,73 +209,34 @@ const TenantScreen = ({ navigation }: any) => {
         useCallback(() => {
             fetchHouses()
             loadTenants()
+
         }, [])
     );
-    const TableHeader = () => (
-        <View className="flex-row bg-gray-200 border-b border-gray-400">
 
-            <View className="w-[30%] p-2">
-                <Text className="font-bold text-gray-800">Name</Text>
-            </View>
-            <View className="w-[25%] p-2">
-                <Text className="font-bold text-gray-800">ID</Text>
-            </View>
-            <View className="w-[25%] p-2">
-                <Text className="font-bold text-gray-800">phone</Text>
-            </View>
-            <View className="w-[10%] p-2">
-                <Text className="font-bold text-gray-800">House</Text>
-            </View>
-            <View className="w-[10%] p-2">
-                <Text className="font-bold text-gray-800">action</Text>
-            </View>
-
-        </View>
-    );
-
-    const TableRow = ({ item }: any) => (
-        <View className="flex-row border-b  border-gray-300 bg-white">
-            <View className="w-[30%] p-2 border-r   border-gray-300  justify-center flex">
-                <TouchableOpacity onPress={() => navigation.navigate('tenantDetail', { tenant: item, data: houses })}
-                    className="flex">
-                    <Text className="text-gray-700">{item.name}</Text>
-                </TouchableOpacity>
-            </View>
-            <View className="w-[25%] border-r   border-gray-300  justify-center flex p-2 ">
-                <Text className="text-gray-700"> {item.national_id}</Text>
-            </View>
-            <View className="w-[25%]  border-r   border-gray-300 justify-center flex p-2 ">
-                <Text className="text-gray-700"> {item.phone}</Text>
-            </View>
-            <View className="w-[10%]  justify-center border-r   border-gray-300 flex p-2 ">
-                <Text className="text-gray-700"> {item.house_number}</Text>
-            </View>
-            <View className="w-[10%]  justify-center flex p-2  ">
-                <TouchableOpacity onPress={() => unassignTenant(item.id)} className=" border rounded-sm   border-slate-300  items-center justify-center flex">
-                    <Icon name="cancel" size={20} color="gray" />
-                </TouchableOpacity>
-            </View>
-
-        </View>
-    );
     return (
         <View className='flex-1 bg-gray-100 p-4'>
             <Section title="Tenants"
                 button={
-                    <TouchableOpacity onPress={() => setAddNewTenant(true)} className='size-6 rounded-sm justify-center items-center border-slate-200  border  flex '>
-                        <Icon name="add" className="text-red-500" size={20} color="red" />
-                    </TouchableOpacity>
+                    <View className='flex flex-row gap-x-2'>
+                        <TouchableOpacity onPress={() => setAddNewTenant(true)}
+                            className='size-6 rounded-sm justify-center items-center border-slate-200  border  flex '>
+                            <Icon name="add" size={20} color="#FF6701" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => exportPDF()} className='h-6 px-2   rounded-sm justify-center items-center border-slate-200  border  flex '>
+                            <Icon name="picture-as-pdf" size={20} color="#FF6701" />
+                        </TouchableOpacity>
+                    </View>
                 }
             >
                 <View className="flex ">
                     <TableHeader />
-                    <FlatList
+                    {loading ? <SkeletonList /> : <FlatList
                         data={tenants.filter((x: any) => x.house_number !== null)}
                         keyExtractor={(item: any) => item.id.toString()}
-                        renderItem={({ item }) => <TableRow item={item} />}
+                        renderItem={({ item }) => <TableRow data={houses} navigation={navigation} unassignTenant={() => { setTenant(item); setShow(true) }} item={item} />}
                         ListFooterComponent={loading ? <ActivityIndicator className="my-4 text-secondary" /> : null}
                         contentContainerStyle={{ paddingBottom: 100 }}
-                    />
+                    />}
                 </View>
 
             </Section>
@@ -256,6 +283,21 @@ const TenantScreen = ({ navigation }: any) => {
                 onCancel={() => {
 
                     setAddNewTenant(false);
+                }}
+            />
+            <CenterModal
+                visible={show}
+                loading={true}
+                onConfirm={() => unassignTenant(tenant?.id)}
+                title="Revoke tenancy"
+                body={
+                    <View className='w-full h-40 flex items-center justify-center'>
+                        <Text>Confirm  that {tenant?.name} is no longer a tenant </Text>
+                    </View>
+                }
+                onCancel={() => {
+                    setShow(false);
+                    setTenant(null)
                 }}
             />
         </View>

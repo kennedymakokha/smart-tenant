@@ -4,7 +4,7 @@ import db from '../database/db';
 import { useToast } from '../../contexts/toastContext';
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { useFocusEffect } from '@react-navigation/native';
-
+import MIcon from 'react-native-vector-icons/MaterialIcons';
 import uuid from 'react-native-uuid'; // Or any UUID library
 import NetInfo from '@react-native-community/netinfo';
 import { insertSMSAsync, markSMSAsUnsynced } from '../../utils/saveSms.local';
@@ -13,9 +13,13 @@ import { pick } from '@react-native-documents/picker'
 import { Button, Section } from '../components/ui/elements';
 import { matchFound } from '../../utils/Matchpdf';
 import AnimatedPercentageLoader from '../components/PercentageLoader';
+import { exportPaymentPDF } from './tenants/components';
+import CenterModal from '../components/ui/centerModal';
 
 
 export default function RentScreen({ navigation }: any) {
+    const [tenant, setTenant] = useState<any>(null);
+    const [show, setShow] = useState(false);
     const [tenants, setTenants] = useState([]);
     const [sentMessage] = useSendsmsMutation()
     const [tenantId, setTenantId] = useState(null);
@@ -49,7 +53,7 @@ export default function RentScreen({ navigation }: any) {
                      SELECT tenant_id FROM rent_payments WHERE month = ? AND year = ?
                  ) AND houses.house_number IS NOT NULL`,
                 [month, year],
-                (_:any, results:any) => {
+                (_: any, results: any) => {
                     const rows: any = results.rows.raw();
                     setTenants(rows);
                     if (rows.length > 0) setTenantId(rows[0].id);
@@ -73,7 +77,8 @@ export default function RentScreen({ navigation }: any) {
         });
     };
 
-    const addPayment = async (tenantId: any) => {
+    const confirmPayment = async (tenantId: any) => {
+
         const today = new Date();
         const day = today.getDate();
 
@@ -124,11 +129,12 @@ export default function RentScreen({ navigation }: any) {
                                         showToast(`Payment recorded for ${tenant.name}`, { type: 'success' });
                                         fetchPayments();
                                         fetchTenants();
-
+                                        setShow(false)
                                         // Send SMS confirmation after payment
                                         await sendPaymentConfirmationSMS({
                                             name: tenant.name,
-                                            phone: phone
+                                            phone: phone,
+                                            rent_amount: tenant.rent_amount
                                         });
                                     }
                                 );
@@ -146,7 +152,7 @@ export default function RentScreen({ navigation }: any) {
         const netState = await NetInfo.fetch();
         const synced = netState.isConnected ? 1 : 0;
 
-        const message = `Hi ${tenant.name}, we have received your rent payment for the month of ${month}. Thank you for staying with Siyenga Family.`;
+        const message = `Hi ${tenant.name}, we have received KSH ${tenant.rent_amount}/- rent payment for the month of ${month}. Thank you for staying with Siyenga Family.`;
 
         const smsData = {
             id,
@@ -186,13 +192,13 @@ export default function RentScreen({ navigation }: any) {
         <View className="flex-row bg-gray-200 border-b border-gray-400">
 
 
-            <View className="w-[40%] p-2">
+            <View className="w-[40%] p-2 border-l border-t border-r -border-b  border-gray-400">
                 <Text className="font-bold text-gray-800">Tenant</Text>
             </View>
-            <View className="w-[30%] p-2">
+            <View className="w-[30%] p-2  border-r border-t    border-gray-400">
                 <Text className="font-bold text-gray-800">amount</Text>
             </View>
-            <View className="w-[30%] p-2">
+            <View className="w-[30%] p-2 border-t border-gray-400 border-r ">
                 <Text className="font-bold text-gray-800">Acknowledge</Text>
             </View>
         </View>
@@ -226,7 +232,7 @@ export default function RentScreen({ navigation }: any) {
             tenants.forEach((tenant) => {
                 const result = matchFound(data.transactions, tenant);
                 if (result) {
-                    addPayment(tenant.id)
+                    confirmPayment(tenant.id)
 
                 }
                 matchCounter += 1;
@@ -248,19 +254,19 @@ export default function RentScreen({ navigation }: any) {
     // console.log(pac)
     const TableRow = ({ item }: any) => (
         <View className="flex-row border-b  border-gray-300 bg-white">
-            <View className="w-[40%] p-2  justify-center flex">
+            <View className="w-[40%] p-2   border-r   border-gray-300 justify-center flex">
                 <TouchableOpacity onPress={() => navigation.navigate('rentDetail', { rent: item })} className="flex">
                     <Text className="text-gray-700">{item.name}</Text>
                 </TouchableOpacity>
             </View>
-            <View className="w-[30%]  justify-center flex  p-2">
+            <View className="w-[30%] border-r   border-gray-300 justify-center flex  p-2">
                 <Text className="text-gray-700"> {item.rent_amount.toFixed(2)}</Text>
             </View>
-            <View className="w-[30%] p-2 flex-row  gap-x-2">
+            <View className="w-[30%] p-2 flex-row justify-between  border-r   border-gray-300 gap-x-2">
                 <TouchableOpacity onPress={() => navigation.navigate('rentDetail', { rent: item })} className=" border rounded-sm  px-2 border-slate-300  items-center justify-center flex">
                     <Icon name="eye" size={20} color="gray" />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={() => addPayment(item.id)} className=" border rounded-sm  px-2 border-slate-300  items-center justify-center flex">
+                <TouchableOpacity onPress={() => { setTenant(item); setShow(true) }} className=" border rounded-sm  px-2 border-slate-300  items-center justify-center flex">
                     <Icon name="check" size={20} color="gray" />
                 </TouchableOpacity>
             </View>
@@ -268,16 +274,21 @@ export default function RentScreen({ navigation }: any) {
     );
 
     return (
-        <View className="flex-1 bg-gray-100 p-4">
+        <View className="flex-1 bg-slate-500 p-4">
             <Section title={`Pending payment for ${month} `}
                 button={
-                    <TouchableOpacity onPress={pickDocument} className='size-6 rounded-sm justify-center items-center border-slate-200  border  flex '>
-                        <Icon name="upload" className="text-red-500" size={20} color="red" />
-                    </TouchableOpacity>
+                    <View className='flex flex-row gap-x-2'>
+                        <TouchableOpacity onPress={pickDocument} className='size-6 rounded-sm justify-center items-center border-slate-200  border  flex '>
+                            <Icon name="upload" size={20} color="#FF6701" />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => exportPaymentPDF(tenants)} className='h-6 px-2   rounded-sm justify-center items-center border-slate-200  border  flex '>
+                            <MIcon name="picture-as-pdf" size={20} color="#FF6701" />
+                        </TouchableOpacity>
+                    </View>
+
                 }
             >
                 <TableHeader />
-                <Text>{fileName}</Text>
                 <FlatList
                     data={tenants.filter((x: any) => x.house_number !== null)}
                     keyExtractor={(item: any) => item.id.toString()}
@@ -285,6 +296,21 @@ export default function RentScreen({ navigation }: any) {
                 />
                 {percentage > 0 && <AnimatedPercentageLoader percentage={percentage} />}
             </Section>
+            <CenterModal
+                visible={show}
+                loading={true}
+                onConfirm={() => confirmPayment(tenant?.id)}
+                title="Acknowldge payment"
+                body={
+                    <View className='w-full h-40 flex items-center justify-center'>
+                        <Text>Confirm  that you have recieved {tenant?.rent_amount} from {tenant?.name} </Text>
+                    </View>
+                }
+                onCancel={() => {
+                    setShow(false);
+                    setTenant(null)
+                }}
+            />
         </View>
     );
 }
