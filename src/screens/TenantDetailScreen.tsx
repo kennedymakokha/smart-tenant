@@ -1,6 +1,6 @@
 import { Picker } from '@react-native-picker/picker';
 import React, { useCallback, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, FlatList, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import db from '../database/db';
@@ -15,6 +15,7 @@ const TenantDetailScreen = ({ route }: any) => {
     const [nationalId, setNationalId] = useState(tenant.national_id);
     const [houseNumber, setHouseNumber] = useState(tenant.house_number);
     const [payments, setPayments] = useState([]);
+    const [loading, setLoading] = useState(true)
     const handleSave = () => {
         // Save logic
         console.log('Saved tenant:', { name, nationalId, houseNumber });
@@ -45,6 +46,7 @@ const TenantDetailScreen = ({ route }: any) => {
                 }
             );
         });
+        setLoading(false)
     };
     useFocusEffect(
         useCallback(() => {
@@ -155,6 +157,8 @@ const TenantDetailScreen = ({ route }: any) => {
                         data={payments}
                         keyExtractor={(item, index) => index.toString()}
                         renderItem={({ item }) => <RentTableRow item={item} />}
+                        ListFooterComponent={loading ? <ActivityIndicator className="my-4 text-secondary" /> : null}
+                        contentContainerStyle={{ paddingBottom: 100 }}
                     />
                 </Section>
             </ScrollView>

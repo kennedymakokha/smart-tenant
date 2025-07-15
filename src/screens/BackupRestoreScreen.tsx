@@ -12,7 +12,7 @@ const BackupRestoreScreen = () => {
     const getTable = (table:any) =>
       new Promise((resolve, reject) => {
         database.transaction(tx => {
-          tx.executeSql(`SELECT * FROM ${table}`, [], (_, results) => {
+          tx.executeSql(`SELECT * FROM ${table}`, [], (_:any, results:any) => {
             resolve(results.rows.raw());
           }, (_, error) => reject(error));
         });

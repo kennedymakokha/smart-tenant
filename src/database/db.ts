@@ -51,7 +51,7 @@ export const initDB = async () => {
     );
 
     // Add `category` to houses if not already added
-    tx.executeSql(`PRAGMA table_info(houses);`, [], (_, result) => {
+    tx.executeSql(`PRAGMA table_info(houses);`, [], (_:any, result:any) => {
       const columns = result.rows.raw().map(col => col.name);
       if (!columns.includes('category')) {
         tx.executeSql(`ALTER TABLE houses ADD COLUMN category TEXT;`);
@@ -59,7 +59,7 @@ export const initDB = async () => {
     });
 
     // Add `national_id` to tenants if not already added
-    tx.executeSql(`PRAGMA table_info(tenants);`, [], (_, result) => {
+    tx.executeSql(`PRAGMA table_info(tenants);`, [], (_:any, result:any) => {
       const columns = result.rows.raw().map(col => col.name);
       if (!columns.includes('national_id')) {
         tx.executeSql(`ALTER TABLE tenants ADD COLUMN national_id TEXT;`);

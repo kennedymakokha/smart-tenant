@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { API_URL } from '@env';
-const baseUrl = `${API_URL}/api`;
+// import { API_URL } from '@env';
+const baseUrl = `https://form-builder.mtandao.app/api`;
 console.log("URL ", baseUrl)
 export const api = createApi({
     reducerPath: 'api',

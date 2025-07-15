@@ -9,7 +9,7 @@ export const fetchTenants = async (setloading?: any): Promise<any[]> => {
            FROM tenants
            LEFT JOIN houses ON tenants.house_id = houses.id`,
                 [],
-                (_, results) => {
+                (_:any, results:any) => {
                     const data = results.rows.raw(); // Get all rows as array
                     resolve(data);
                     setloading(false)

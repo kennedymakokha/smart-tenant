@@ -29,7 +29,7 @@ export const getAllSMS = async () => {
             tx.executeSql(
                 'SELECT * FROM sms ORDER BY timestamp DESC',
                 [],
-                (_, results) => {
+                (_:any, results:any) => {
                     const rows = results.rows;
                     const data = [];
                     for (let i = 0; i < rows.length; i++) {
@@ -54,7 +54,7 @@ export const getUnsyncedMessages = async () => {
             tx.executeSql(
                 'SELECT * FROM sms WHERE synced = 0',
                 [],
-                (_, result) => {
+                (_:any, result:any) => {
                     const items = [];
                     for (let i = 0; i < result.rows.length; i++) {
                         items.push(result.rows.item(i));

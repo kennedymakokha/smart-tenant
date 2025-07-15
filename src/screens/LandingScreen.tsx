@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, ScrollView } from 'react-native';
-import { BarChart, PieChart } from 'react-native-gifted-charts';
+import { PieChart } from 'react-native-gifted-charts';
+import { BarChart } from "react-native-gifted-charts";
 import db from '../database/db';
 import { Section } from '../components/ui/elements';
 import { useFocusEffect } from '@react-navigation/native';
-import { LineChart } from 'react-native-gifted-charts';
 import { useGetsmsBalanceMutation } from '../services/sms.service';
 export default function DashboardScreen() {
     const [occupancyData, setOccupancyData] = useState([]);
@@ -14,14 +14,7 @@ export default function DashboardScreen() {
 
     const [categoryLineData, setCategoryLineData] = useState([]);
     const [categoryLabels, setCategoryLabels] = useState([]);
-    const categoryColors = [
-        '#facc15', // yellow
-        '#34d399', // green
-        '#60a5fa', // blue
-        '#f472b6', // pink
-        '#fb923c', // orange
-        '#a78bfa', // purple
-    ];
+  
     const [fetchBalance] = useGetsmsBalanceMutation()
     const findBalance = async () => {
         let v = await fetchBalance({}).unwrap()
@@ -282,7 +275,7 @@ export default function DashboardScreen() {
                                     <BarChart
                                         stackData={categoryOccupancyData}
                                         barWidth={30}
-                                        spacing={30}
+                                        spacing={5}
                                         noOfSections={5}
                                         yAxisTextStyle={{ fontSize: 10 }}
                                         xAxisLabelTextStyle={{ fontSize: 10 }}

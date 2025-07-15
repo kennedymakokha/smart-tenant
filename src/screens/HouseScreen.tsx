@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
 import db, { initDB } from '../database/db';
 import { Button, Input, Section } from '../components/ui/elements';
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -16,17 +16,18 @@ const HouseScreen = ({ navigation, route }: any) => {
     const [category, setCategory] = useState('');
     const [addNewHouse, setAddNewHouse] = useState(false);
     const { showToast } = useToast()
+    const [loading, setLoading] = useState(true)
     useEffect(() => {
         initDB().then(fetchHouses);
     }, []);
 
     const fetchHouses = async () => {
         const database = await db;
-        database.transaction(tx => {
+        database.transaction((tx: any) => {
             tx.executeSql(
                 'SELECT * FROM houses',
                 [],
-                (_, results) => {
+                (_: any, results: any) => {
                     const rows: any = results.rows.raw();
                     setHouses(rows);
                 }
@@ -40,7 +41,7 @@ const HouseScreen = ({ navigation, route }: any) => {
                  LEFT JOIN tenants t ON h.id = t.house_id
                  WHERE t.house_id IS NULL`,
                 [],
-                (_, result) => {
+                (_: any, result: any) => {
                     console.log("vacantHouses", result)
                     const vacantHouses: any = result.rows.raw();
                     console.log("vacantHouses")
@@ -48,12 +49,13 @@ const HouseScreen = ({ navigation, route }: any) => {
                 }
             )
         });
+        setLoading(false)
     };
 
     const addHouse = async () => {
         if (!houseNumber.trim()) return;
         const database = await db;
-        database.transaction(tx => {
+        database.transaction((tx: any) => {
             tx.executeSql(
                 'INSERT INTO houses (house_number, location, rent_amount,category) VALUES (?, ?, ?,?)',
                 [houseNumber, '', parseFloat(rentAmount), category],
@@ -119,6 +121,8 @@ const HouseScreen = ({ navigation, route }: any) => {
                     data={state === "occ" ? houses : vhouses}
                     keyExtractor={(item: any) => item.id.toString()}
                     renderItem={({ item }) => <TableRow item={item} />}
+                    ListFooterComponent={loading ? <ActivityIndicator className="my-4 text-secondary" /> : null}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             </Section>
             <BottomModal

@@ -3,7 +3,7 @@ import { Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export function Button({ title, onPress, outline }: any) {
     return (
-        <TouchableOpacity onPress={onPress} className={`${outline ? "border-blue-600 border text-blue-600" : "bg-blue-600"} h-14 flex items-center justify-center p-3 rounded-md mb-3`}>
+        <TouchableOpacity onPress={onPress} className={`${outline ? "border-slate-800 border text-slate-800" : "bg-slate-800"} h-14 flex items-center justify-center p-3 rounded-md mb-3`}>
             <Text className="text-white  uppercase font-semibold">{title}</Text>
         </TouchableOpacity>
     );

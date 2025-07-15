@@ -13,10 +13,10 @@ import { fetchTenants } from '../database/tenants';
 import { useSendsmsMutation } from '../services/sms.service';
 import { TENANTItem } from '../../types';
 import { insertSMSAsync, markSMSAsUnsynced } from '../../utils/saveSms.local';
+import { ActivityIndicator } from 'react-native';
 const TenantScreen = ({ navigation }: any) => {
     const { showToast } = useToast();
     const [name, setName] = useState('');
-  
     const [phone, setPhone] = useState('');
     const [id, setId] = useState('');
     const [houseId, setHouseId] = useState(null);
@@ -24,7 +24,7 @@ const TenantScreen = ({ navigation }: any) => {
     const [tenants, setTenants] = useState([]);
     const [addNewTenant, setAddNewTenant] = useState(false);
     const [sentMessage] = useSendsmsMutation()
-
+    const [loading, setLoading] = useState(true)
     const fetchHouses = async () => {
         const database = await db;
         database.transaction(tx => {
@@ -41,6 +41,7 @@ const TenantScreen = ({ navigation }: any) => {
     const loadTenants: any = async () => {
         const tenants: any = await fetchTenants();
         setTenants(tenants);
+        setLoading(false)
     };
 
     const unassignTenant = async (tenantId: any) => {
@@ -150,13 +151,13 @@ const TenantScreen = ({ navigation }: any) => {
             <View className="w-[30%] p-2">
                 <Text className="font-bold text-gray-800">Name</Text>
             </View>
-            <View className="w-[15%] p-2">
+            <View className="w-[25%] p-2">
                 <Text className="font-bold text-gray-800">ID</Text>
             </View>
             <View className="w-[25%] p-2">
                 <Text className="font-bold text-gray-800">phone</Text>
             </View>
-            <View className="w-[20%] p-2">
+            <View className="w-[10%] p-2">
                 <Text className="font-bold text-gray-800">House</Text>
             </View>
             <View className="w-[10%] p-2">
@@ -174,13 +175,13 @@ const TenantScreen = ({ navigation }: any) => {
                     <Text className="text-gray-700">{item.name}</Text>
                 </TouchableOpacity>
             </View>
-            <View className="w-[15%] border-r   border-gray-300  justify-center flex p-2 ">
+            <View className="w-[25%] border-r   border-gray-300  justify-center flex p-2 ">
                 <Text className="text-gray-700"> {item.national_id}</Text>
             </View>
             <View className="w-[25%]  border-r   border-gray-300 justify-center flex p-2 ">
                 <Text className="text-gray-700"> {item.phone}</Text>
             </View>
-            <View className="w-[20%]  justify-center border-r   border-gray-300 flex p-2 ">
+            <View className="w-[10%]  justify-center border-r   border-gray-300 flex p-2 ">
                 <Text className="text-gray-700"> {item.house_number}</Text>
             </View>
             <View className="w-[10%]  justify-center flex p-2  ">
@@ -206,7 +207,8 @@ const TenantScreen = ({ navigation }: any) => {
                         data={tenants.filter((x: any) => x.house_number !== null)}
                         keyExtractor={(item: any) => item.id.toString()}
                         renderItem={({ item }) => <TableRow item={item} />}
-
+                        ListFooterComponent={loading ? <ActivityIndicator className="my-4 text-secondary" /> : null}
+                        contentContainerStyle={{ paddingBottom: 100 }}
                     />
                 </View>
 

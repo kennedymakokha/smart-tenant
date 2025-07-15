@@ -30,12 +30,12 @@ const CustomDrawer: React.FC<DrawerContentComponentProps> = ({ navigation }) => 
             className="flex-1 py-16 px-5 bg-slate-800">
             {/* Header */}
             <View className="items-center border-b border-white pb-4 mb-10">
-                <Image
+                {/* <Image
                     source={require('./../../assets/logo.png')}
                     className="w-44 h-44 rounded-full mb-4"
                     resizeMode="contain"
-                />
-                <Text className="text-white  tracking-widest text-lg">Leah Makokha</Text>
+                /> */}
+                <Text className="text-white  tracking-widest text-lg">admin 101</Text>
                 <Text className="text-white capitalize tracking-widest text-center text-lg">Admin</Text>
             </View>
 
